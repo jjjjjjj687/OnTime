@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On Time - To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #tasks {
+            margin-top: 20px;
+        }
+        .completed {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        #calendar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>On Time - To-Do List</h1>
+    <input type="text" id="taskName" placeholder="Enter task name">
+    <input type="datetime-local" id="dueDate">
+    <button onclick="addTask()">Add Task</button>
+    <div id="calendar"></div>
+    <div id="tasks"></div>
+    <br>
+    <br>
+    <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FNew_York&showTabs=0&showPrint=0&showCalendars=0&src=NmM5MDNhM2VjMDIzYjVmMTA1MTZjZjcxNmY4Y2UxZGQ4YTQ5NTkwMDI3MDZmMzEyOWNkNzQyNDQyNTg4NTk3NEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23E67C73" style="border:solid 1px #777" width="520" height="350" frameborder="0" scrolling="no"></iframe>
+    <script>
+        const tasks = [];
+
+        function addTask() {
+            const taskName = document.getElementById("taskName").value;
+            const dueDate = new Date(document.getElementById("dueDate").value);
+
+            if (taskName && !isNaN(dueDate)) {
+                tasks.push({ name: taskName, dueDate: dueDate, completed: false });
+                document.getElementById("taskName").value = "";
+                document.getElementById("dueDate").value = "";
+                displayTasks();
+            } else {
+                alert("Please enter valid task information.");
+            }
+        }
+
+        function displayTasks() {
+            const tasksContainer = document.getElementById("tasks");
+            tasksContainer.innerHTML = "<h2>Tasks:</h2>";
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+                const status = task.completed ? "Completed" : "Not Completed";
+                const taskElement = document.createElement("p");
+                taskElement.textContent = `${i + 1}. Name: ${task.name}, Due Date: ${task.dueDate.toLocaleString()}, Status: ${status}`;
+                if (task.completed) {
+                    taskElement.classList.add("completed");
+                }
+                tasksContainer.appendChild(taskElement);
+            }
+        }
+
+        window.addEventListener("beforeunload", function (e) {
+            for (let i = 0; i < tasks.length; i++) {
+                if (!tasks[i].completed) {
+                    e.returnValue = "You still have unfinished tasks. Are you sure you want to leave the page?";
+                }
+            }
+        });
+
+        setInterval(checkReminders, 200);
+
+        function checkReminders() {
+            const currentDateTime = new Date();
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+                if (!task.completed && currentDateTime >= task.dueDate) {
+                    const response = prompt(`Reminder: Task '${task.name}' is due now!\nDid you complete task '${task.name}'? (yes/no)`);
+                    if (response && response.toLowerCase() === "yes") {
+                        task.completed = true;
+                        displayTasks();
+                        alert("Good job! Task marked as completed.");
+                    } else {
+                        alert(`Task '${task.name}' not completed.`);
+                    }
+                }
+            }
+        }
+
+        function updateCalendar() {
+            const calendarContainer = document.getElementById("calendar");
+            const currentDate = new Date();
+            const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
+            const currentDay = currentDate.getDate();
+            calendarContainer.textContent = `Current Month: ${currentMonth}, Day: ${currentDay}`;
+        }
+
+        setInterval(updateCalendar, 1000);
+        updateCalendar();
+    </script>
+</body>
+</html>
